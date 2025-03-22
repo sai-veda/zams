@@ -12,7 +12,7 @@ interface ChatInputProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-type ResponseType = 'concise' | 'detailed';
+type ResponseType = 'concise' | 'detailed' | null;
 
 export function ChatInput({
   messages,
@@ -23,7 +23,7 @@ export function ChatInput({
   setIsLoading
 }: ChatInputProps) {
   const [input, setInput] = useState<string>('');
-  const [responseType, setResponseType] = useState<ResponseType>('concise');
+  const [responseType, setResponseType] = useState<ResponseType>(null);
   const [showResponseTypeDropdown, setShowResponseTypeDropdown] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +83,7 @@ export function ChatInput({
       // Create request body for chat
       const requestBody = {
         messages: [...messages, userMessage],
-        responseType
+        responseType: responseType || 'concise' // Default to concise if not selected
       };
       
       // Setup streaming response
@@ -209,7 +209,7 @@ export function ChatInput({
                   textAlign: "center",
                   color: "#667085"
                 }}>
-                  {responseType === 'concise' ? 'Concise' : 'Detailed'}
+                  {responseType ? (responseType === 'concise' ? 'Concise' : 'Detailed') : 'Response Type'}
                 </span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M5 7L8 10L11 7" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -217,7 +217,7 @@ export function ChatInput({
               </button>
               
               {showResponseTypeDropdown && (
-                <div className="absolute left-0 bottom-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[120px] border border-[#E4E7EC]">
+                <div className="absolute left-0 top-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[120px] border border-[#E4E7EC]">
                   <button
                     className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'concise' ? 'bg-[#F9FAFB]' : ''}`}
                     style={{ 
