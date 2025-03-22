@@ -139,10 +139,10 @@
   background: linear-gradient(
     90deg, 
     #070608 0%, 
-    #311D3A 10.17%, 
-    #512A51 18.07%, 
-    #8C417D 25.6%, 
-    #B7549B 33.32%
+    #311D3A 8%, 
+    #512A51 15%, 
+    #8C417D 22%, 
+    #B7549B 30%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -153,12 +153,12 @@
   background: linear-gradient(
     90deg, 
     #070608 0%,
-    #311D3A 29%, 
-    #512A51 41.5%, 
-    #8C417D 52.5%, 
-    #B7549B 69.5%, 
-    #6145C3 84%, 
-    #5E49DB 99.5%
+    #311D3A 24%, 
+    #512A51 36.5%, 
+    #8C417D 47.5%, 
+    #B7549B 63.5%, 
+    #6145C3 79%, 
+    #5E49DB 95%
   );
   -webkit-background-clip: text;
   background-clip: text;

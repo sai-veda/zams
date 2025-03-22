@@ -14,7 +14,7 @@ export default function Home() {
           <span className="font-medium text-black">zams</span>
         </div>
         
-        {/* Hey there, - with animated gradient text */}
+        {/* Hey there, - with static gradient */}
         <h1 
           className="text-5xl font-bold gradient-text-1"
           style={{ fontFamily: "var(--font-sherpa)" }}
@@ -22,7 +22,7 @@ export default function Home() {
           Hey there,
         </h1>
         
-        {/* What'd you like to ask today? - with animated gradient text */}
+        {/* What'd you like to ask today? - with static gradient */}
         <h2 
           className="text-5xl font-bold mb-10 gradient-text-2"
           style={{ fontFamily: "var(--font-sherpa)" }}
@@ -42,26 +42,54 @@ export default function Home() {
             }}
           />
           
-          {/* Response type dropdown */}
-          <div className="absolute left-4 bottom-4 flex items-center gap-1 text-[#6941C6] text-sm">
+          {/* Response type dropdown with updated styling */}
+          <div className="absolute left-4 bottom-4 flex items-center gap-1">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 7L8 10L11 7" stroke="#6941C6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <span>Response Type</span>
+            <span style={{ 
+              fontFamily: "var(--font-inter)",
+              fontWeight: 500,
+              fontSize: "12px",
+              lineHeight: "18px",
+              letterSpacing: "0%",
+              textAlign: "center",
+              color: "#667085"
+            }}>
+              Response Type
+            </span>
           </div>
           
           {/* Add attachment button */}
-          <div className="absolute left-[150px] bottom-4 flex items-center gap-1 text-gray-500 text-sm">
+          <div className="absolute left-[150px] bottom-4 flex items-center gap-1">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="8" cy="8" r="7" stroke="#667085" strokeWidth="1.5"/>
               <path d="M8 5V11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M5 8H11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span>Add Attachment</span>
+            <span style={{ 
+              fontFamily: "var(--font-inter)",
+              fontWeight: 500,
+              fontSize: "12px",
+              lineHeight: "18px",
+              letterSpacing: "0%",
+              textAlign: "center",
+              color: "#667085"
+            }}>
+              Add Attachment
+            </span>
           </div>
           
           {/* Character count */}
-          <div className="absolute right-14 bottom-4 text-gray-500 text-sm">
+          <div className="absolute right-14 bottom-4" style={{ 
+            fontFamily: "var(--font-inter)",
+            fontWeight: 500,
+            fontSize: "12px",
+            lineHeight: "18px",
+            letterSpacing: "0%",
+            textAlign: "center",
+            color: "#667085"
+          }}>
             0/1000
           </div>
           
