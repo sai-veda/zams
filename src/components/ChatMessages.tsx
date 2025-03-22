@@ -41,7 +41,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
   return (
     <div 
       ref={messagesContainerRef}
-      className="w-full overflow-y-auto max-h-[60vh] mb-6 space-y-4 px-1 scrollbar-thin scrollbar-thumb-[#E4E7EC] scrollbar-track-transparent"
+      className="w-full overflow-y-auto max-h-[60vh] mb-4 sm:mb-6 space-y-3 sm:space-y-4 px-1 scrollbar-thin scrollbar-thumb-[#E4E7EC] scrollbar-track-transparent"
       style={{ scrollBehavior: 'smooth' }}
     >
       {/* Render all completed messages */}
@@ -51,7 +51,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
           className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div 
-            className={`max-w-[80%] px-4 py-3 rounded-xl ${
+            className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-xl ${
               message.role === 'user' 
                 ? 'bg-black text-white' 
                 : 'bg-[#F2F4F7] text-[#101828] markdown-wrapper'
@@ -59,28 +59,28 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
             style={{ fontFamily: "var(--font-inter)" }}
           >
             {message.role === 'user' ? (
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              <div className="whitespace-pre-wrap text-sm sm:text-base">{message.content}</div>
             ) : (
-              <div className="markdown-wrapper">
+              <div className="markdown-wrapper text-sm sm:text-base">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                   components={{
                     pre: ({ node, ...props }) => (
-                      <pre className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full" {...props} />
+                      <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                     ),
                     code: ({ node, inline, className, children, ...props }) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const language = match ? match[1] : '';
                       return !inline ? (
                         <div>
-                          {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
-                          <code className="text-[#D4D4D4] font-mono text-sm" {...props}>
+                          {language && <div className="text-xs text-[#999] mb-1 sm:mb-2">{language}</div>}
+                          <code className="text-[#D4D4D4] font-mono text-xs sm:text-sm" {...props}>
                             {children}
                           </code>
                         </div>
                       ) : (
-                        <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-sm" {...props}>
+                        <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-xs sm:text-sm" {...props}>
                           {children}
                         </code>
                       );
@@ -99,29 +99,29 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
       {streamingResponse && (
         <div className="flex justify-start">
           <div 
-            className="max-w-[80%] px-4 py-3 rounded-xl bg-[#F2F4F7] text-[#101828] markdown-wrapper"
+            className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-xl bg-[#F2F4F7] text-[#101828] markdown-wrapper"
             style={{ fontFamily: "var(--font-inter)" }}
           >
-            <div className="markdown-wrapper">
+            <div className="markdown-wrapper text-sm sm:text-base">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
                 components={{
                   pre: ({ node, ...props }) => (
-                    <pre className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full" {...props} />
+                    <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                   ),
                   code: ({ node, inline, className, children, ...props }) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : '';
                     return !inline ? (
                       <div>
-                        {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
-                        <code className="text-[#D4D4D4] font-mono text-sm" {...props}>
+                        {language && <div className="text-xs text-[#999] mb-1 sm:mb-2">{language}</div>}
+                        <code className="text-[#D4D4D4] font-mono text-xs sm:text-sm" {...props}>
                           {children}
                         </code>
                       </div>
                     ) : (
-                      <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-sm" {...props}>
+                      <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-xs sm:text-sm" {...props}>
                         {children}
                       </code>
                     );

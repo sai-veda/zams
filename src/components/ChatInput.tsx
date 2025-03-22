@@ -184,15 +184,15 @@ export function ChatInput({
       {/* Responsive controls container */}
       <div className="absolute left-0 right-0 bottom-0 flex items-center px-4 pb-4 justify-between">
         {/* Left controls group */}
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Response type dropdown */}
           <div className="flex items-center gap-1">
             <Image 
               src="/feather.svg" 
               alt="Feather" 
-              width={16} 
-              height={16} 
-              className="mr-1"
+              width={14} 
+              height={14} 
+              className="hidden sm:block mr-1"
               style={{ color: "#667085" }}
             />
             <div className="relative" ref={dropdownRef}>
@@ -203,26 +203,28 @@ export function ChatInput({
                 <span style={{ 
                   fontFamily: "var(--font-inter)",
                   fontWeight: 500,
-                  fontSize: "12px",
-                  lineHeight: "18px",
+                  fontSize: "11px",
+                  lineHeight: "16px",
                   letterSpacing: "0%",
                   textAlign: "center",
                   color: "#667085"
-                }}>
+                }}
+                  className="text-[11px] sm:text-xs"
+                >
                   {responseType ? (responseType === 'concise' ? 'Concise' : 'Detailed') : 'Response Type'}
                 </span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                   <path d="M5 7L8 10L11 7" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
               
               {showResponseTypeDropdown && (
-                <div className="absolute left-0 top-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[120px] border border-[#E4E7EC]">
+                <div className="absolute left-0 top-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[100px] border border-[#E4E7EC]">
                   <button
                     className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'concise' ? 'bg-[#F9FAFB]' : ''}`}
                     style={{ 
                       fontFamily: "var(--font-inter)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       color: "#667085"
                     }}
                     onClick={() => {
@@ -236,7 +238,7 @@ export function ChatInput({
                     className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'detailed' ? 'bg-[#F9FAFB]' : ''}`}
                     style={{ 
                       fontFamily: "var(--font-inter)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       color: "#667085"
                     }}
                     onClick={() => {
@@ -264,7 +266,7 @@ export function ChatInput({
               className="flex items-center gap-1"
               disabled={isLoading}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="#667085" strokeWidth="1.5"/>
                 <path d="M8 5V11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
                 <path d="M5 8H11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
@@ -272,13 +274,15 @@ export function ChatInput({
               <span style={{ 
                 fontFamily: "var(--font-inter)",
                 fontWeight: 500,
-                fontSize: "12px",
-                lineHeight: "18px",
+                fontSize: "11px",
+                lineHeight: "16px",
                 letterSpacing: "0%",
                 textAlign: "center",
                 color: "#667085"
-              }}>
-                {file ? file.name.substring(0, 15) + (file.name.length > 15 ? '...' : '') : 'Add Attachment'}
+              }}
+                className="text-[11px] sm:text-xs"
+              >
+                {file ? file.name.substring(0, 10) + (file.name.length > 10 ? '...' : '') : 'Add Attachment'}
               </span>
             </button>
           </div>
@@ -290,18 +294,20 @@ export function ChatInput({
           <div style={{ 
             fontFamily: "var(--font-inter)",
             fontWeight: 500,
-            fontSize: "12px",
-            lineHeight: "18px",
+            fontSize: "11px",
+            lineHeight: "16px",
             letterSpacing: "0%",
             textAlign: "center",
             color: "#667085"
-          }}>
+          }}
+            className="text-[11px] sm:text-xs"
+          >
             {input.length}/{maxLength}
           </div>
           
           {/* Submit button */}
           <button 
-            className={`bg-black text-white rounded-full p-1.5 ${isLoading ? 'opacity-50' : ''}`}
+            className={`bg-black text-white rounded-full p-1.5 flex-shrink-0 ${isLoading ? 'opacity-50' : ''}`}
             onClick={handleSubmit}
             disabled={isLoading || (!input.trim() && !file)}
           >
@@ -329,19 +335,21 @@ export function ChatInput({
       
       {/* File preview - show if file is selected */}
       {file && (
-        <div className="absolute left-4 bottom-10 bg-[#F9FAFB] px-2 py-1 rounded-md flex items-center gap-1">
+        <div className="absolute left-4 bottom-10 bg-[#F9FAFB] px-2 py-1 rounded-md flex items-center gap-1 max-w-[80%] overflow-hidden">
           <span style={{ 
             fontFamily: "var(--font-inter)",
-            fontSize: "12px",
+            fontSize: "11px",
             color: "#667085"
-          }}>
+          }}
+            className="truncate"
+          >
             {file.name}
           </span>
           <button 
             onClick={() => setFile(null)}
-            className="ml-1 text-[#667085] hover:text-[#101828]"
+            className="ml-1 text-[#667085] hover:text-[#101828] flex-shrink-0"
           >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
