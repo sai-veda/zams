@@ -13,17 +13,39 @@ export interface ChatMessage {
 
 export async function generateChatCompletion(
   messages: ChatMessage[],
-  streamCallback?: (chunk: string) => void
+  streamCallback?: (chunk: string) => void,
+  responseType: 'concise' | 'detailed' = 'concise'
 ) {
-  try {
-    const stream = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      stream: !!streamCallback,
-    });
+  // Add a system message to ensure proper markdown formatting
+  const systemMessage: ChatMessage = {
+    role: 'system',
+    content: `Please provide well-formatted responses. For any code snippets, JSON examples, or technical content, always wrap them in triple backticks (\`\`\`) with the appropriate language identifier. For example:
 
-    // Handle streaming
+\`\`\`javascript
+console.log('Hello world');
+\`\`\`
+
+or
+
+\`\`\`json
+{"key": "value"}
+\`\`\`
+
+${responseType === 'detailed' ? 'Provide detailed, thorough explanations with examples where helpful.' : 'Keep responses concise and to the point.'}`
+  };
+
+  // Place the system message at the beginning
+  const messagesWithSystem = [systemMessage, ...messages];
+
+  try {
     if (streamCallback) {
+      // Handle streaming case
+      const stream = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: messagesWithSystem,
+        stream: true,
+      });
+
       let fullResponse = '';
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
@@ -31,11 +53,16 @@ export async function generateChatCompletion(
         streamCallback(content);
       }
       return fullResponse;
-    } 
-    
-    // Handle non-streaming (fallback)
-    const completion = await stream;
-    return completion.choices[0]?.message?.content || '';
+    } else {
+      // Handle non-streaming case
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: messagesWithSystem,
+        stream: false,
+      });
+      
+      return completion.choices[0]?.message?.content || '';
+    }
   } catch (error) {
     console.error('Error generating chat completion:', error);
     throw error;

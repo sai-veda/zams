@@ -1,10 +1,15 @@
 import { generateChatCompletion, ChatMessage } from '@/lib/groq';
 import { NextRequest } from 'next/server';
 
+interface ChatRequestBody {
+  messages: ChatMessage[];
+  responseType?: 'concise' | 'detailed';
+}
+
 // Function to create a streaming response
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json() as { messages: ChatMessage[] };
+    const { messages, responseType = 'concise' } = await req.json() as ChatRequestBody;
 
     // Set up the streaming response
     const encoder = new TextEncoder();
@@ -17,7 +22,7 @@ export async function POST(req: NextRequest) {
       await writer.write(
         encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
       );
-    }).then(async () => {
+    }, responseType).then(async () => {
       // Signal end of stream
       await writer.write(encoder.encode(`data: [DONE]\n\n`));
       await writer.close();
@@ -38,10 +43,11 @@ export async function POST(req: NextRequest) {
         'Connection': 'keep-alive',
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Chat API error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
     return new Response(
-      JSON.stringify({ error: error.message || 'Something went wrong' }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

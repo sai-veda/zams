@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { ChatMessage } from '@/lib/groq';
@@ -12,6 +12,8 @@ interface ChatInputProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+type ResponseType = 'concise' | 'detailed';
+
 export function ChatInput({
   messages,
   setMessages,
@@ -21,26 +23,74 @@ export function ChatInput({
   setIsLoading
 }: ChatInputProps) {
   const [input, setInput] = useState<string>('');
+  const [responseType, setResponseType] = useState<ResponseType>('concise');
+  const [showResponseTypeDropdown, setShowResponseTypeDropdown] = useState<boolean>(false);
+  const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const maxLength = 1000;
 
+  // Handle clicks outside dropdown to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowResponseTypeDropdown(false);
+      }
+    }
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      // Clean up
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSubmit = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !file) || isLoading) return;
     
     // Add user message
-    const userMessage: ChatMessage = { role: 'user', content: input.trim() };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    const userMessage: ChatMessage = { 
+      role: 'user', 
+      content: input.trim() + (file ? `\n\n[Attached file: ${file.name}]` : '') 
+    };
+    
     setIsLoading(true);
     
     try {
-      // Setup EventSource for streaming
+      // Upload file if present
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.message || 'Failed to upload file');
+        }
+      }
+      
+      // Add message after successful file upload (if any)
+      setMessages(prev => [...prev, userMessage]);
+      setInput('');
+      setFile(null);
+      
+      // Create request body for chat
+      const requestBody = {
+        messages: [...messages, userMessage],
+        responseType
+      };
+      
+      // Setup streaming response
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-        }),
+        body: JSON.stringify(requestBody),
       });
       
       const reader = response.body?.getReader();
@@ -95,13 +145,22 @@ export function ChatInput({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse]);
+  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    setFile(selectedFile);
   };
 
   return (
@@ -122,83 +181,173 @@ export function ChatInput({
         disabled={isLoading}
       />
       
-      {/* Response type dropdown with feather icon */}
-      <div className="absolute left-4 bottom-4 flex items-center gap-1">
-        <Image 
-          src="/feather.svg" 
-          alt="Feather" 
-          width={16} 
-          height={16} 
-          className="mr-1"
-          style={{ color: "#667085" }}
-        />
-        <span style={{ 
-          fontFamily: "var(--font-inter)",
-          fontWeight: 500,
-          fontSize: "12px",
-          lineHeight: "18px",
-          letterSpacing: "0%",
-          textAlign: "center",
-          color: "#667085"
-        }}>
-          Response Type
-        </span>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 7L8 10L11 7" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+      {/* Responsive controls container */}
+      <div className="absolute left-0 right-0 bottom-0 flex items-center px-4 pb-4 justify-between">
+        {/* Left controls group */}
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Response type dropdown */}
+          <div className="flex items-center gap-1">
+            <Image 
+              src="/feather.svg" 
+              alt="Feather" 
+              width={16} 
+              height={16} 
+              className="mr-1"
+              style={{ color: "#667085" }}
+            />
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setShowResponseTypeDropdown(!showResponseTypeDropdown)}
+                className="flex items-center gap-1"
+              >
+                <span style={{ 
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: 500,
+                  fontSize: "12px",
+                  lineHeight: "18px",
+                  letterSpacing: "0%",
+                  textAlign: "center",
+                  color: "#667085"
+                }}>
+                  {responseType === 'concise' ? 'Concise' : 'Detailed'}
+                </span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 7L8 10L11 7" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              
+              {showResponseTypeDropdown && (
+                <div className="absolute left-0 bottom-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[120px] border border-[#E4E7EC]">
+                  <button
+                    className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'concise' ? 'bg-[#F9FAFB]' : ''}`}
+                    style={{ 
+                      fontFamily: "var(--font-inter)",
+                      fontSize: "12px",
+                      color: "#667085"
+                    }}
+                    onClick={() => {
+                      setResponseType('concise');
+                      setShowResponseTypeDropdown(false);
+                    }}
+                  >
+                    Concise
+                  </button>
+                  <button
+                    className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'detailed' ? 'bg-[#F9FAFB]' : ''}`}
+                    style={{ 
+                      fontFamily: "var(--font-inter)",
+                      fontSize: "12px",
+                      color: "#667085"
+                    }}
+                    onClick={() => {
+                      setResponseType('detailed');
+                      setShowResponseTypeDropdown(false);
+                    }}
+                  >
+                    Detailed
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Add attachment button */}
+          <div className="flex items-center gap-1">
+            <input 
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              onClick={handleFileSelect}
+              className="flex items-center gap-1"
+              disabled={isLoading}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="8" r="7" stroke="#667085" strokeWidth="1.5"/>
+                <path d="M8 5V11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M5 8H11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <span style={{ 
+                fontFamily: "var(--font-inter)",
+                fontWeight: 500,
+                fontSize: "12px",
+                lineHeight: "18px",
+                letterSpacing: "0%",
+                textAlign: "center",
+                color: "#667085"
+              }}>
+                {file ? file.name.substring(0, 15) + (file.name.length > 15 ? '...' : '') : 'Add Attachment'}
+              </span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Right controls group */}
+        <div className="flex items-center gap-2">
+          {/* Character count */}
+          <div style={{ 
+            fontFamily: "var(--font-inter)",
+            fontWeight: 500,
+            fontSize: "12px",
+            lineHeight: "18px",
+            letterSpacing: "0%",
+            textAlign: "center",
+            color: "#667085"
+          }}>
+            {input.length}/{maxLength}
+          </div>
+          
+          {/* Submit button */}
+          <button 
+            className={`bg-black text-white rounded-full p-1.5 ${isLoading ? 'opacity-50' : ''}`}
+            onClick={handleSubmit}
+            disabled={isLoading || (!input.trim() && !file)}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center w-5 h-5">
+                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle opacity="0.25" cx="12" cy="12" r="10" stroke="white" strokeWidth="3" />
+                  <path 
+                    d="M12 2C6.47715 2 2 6.47715 2 12" 
+                    stroke="white" 
+                    strokeWidth="3" 
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 10H15" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 5L15 10L10 15" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
       
-      {/* Add attachment button */}
-      <div className="absolute left-[170px] bottom-4 flex items-center gap-1">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="7" stroke="#667085" strokeWidth="1.5"/>
-          <path d="M8 5V11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M5 8H11" stroke="#667085" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        <span style={{ 
-          fontFamily: "var(--font-inter)",
-          fontWeight: 500,
-          fontSize: "12px",
-          lineHeight: "18px",
-          letterSpacing: "0%",
-          textAlign: "center",
-          color: "#667085"
-        }}>
-          Add Attachment
-        </span>
-      </div>
-      
-      {/* Character count */}
-      <div className="absolute right-14 bottom-4" style={{ 
-        fontFamily: "var(--font-inter)",
-        fontWeight: 500,
-        fontSize: "12px",
-        lineHeight: "18px",
-        letterSpacing: "0%",
-        textAlign: "center",
-        color: "#667085"
-      }}>
-        {input.length}/{maxLength}
-      </div>
-      
-      {/* Submit button */}
-      <button 
-        className={`absolute right-4 bottom-3 bg-black text-white rounded-full p-1.5 ${isLoading ? 'opacity-50' : ''}`}
-        onClick={handleSubmit}
-        disabled={isLoading || !input.trim()}
-      >
-        {isLoading ? (
-          <svg className="animate-spin" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="10" r="8" stroke="white" strokeWidth="1.5" strokeOpacity="0.25"/>
-            <path d="M10 2C8.02219 2 6.08879 2.58649 4.4443 3.6853C2.79981 4.78412 1.51809 6.3459 0.761209 8.17317C0.00433284 10.0004 -0.193701 12.0111 0.192152 13.9509C0.578004 15.8907 1.53041 17.6725 2.92894 19.0711C4.32746 20.4696 6.10929 21.422 8.0491 21.8079C9.98891 22.1937 11.9996 21.9957 13.8268 21.2388C15.6541 20.4819 17.2159 19.2002 18.3147 17.5557C19.4135 15.9112 20 13.9778 20 12" stroke="white" strokeWidth="1.5"/>
-          </svg>
-        ) : (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 10H15" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M10 5L15 10L10 15" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        )}
-      </button>
+      {/* File preview - show if file is selected */}
+      {file && (
+        <div className="absolute left-4 bottom-10 bg-[#F9FAFB] px-2 py-1 rounded-md flex items-center gap-1">
+          <span style={{ 
+            fontFamily: "var(--font-inter)",
+            fontSize: "12px",
+            color: "#667085"
+          }}>
+            {file.name}
+          </span>
+          <button 
+            onClick={() => setFile(null)}
+            className="ml-1 text-[#667085] hover:text-[#101828]"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 } 

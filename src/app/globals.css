@@ -219,3 +219,94 @@ code:not(pre code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.875em;
 }
+
+/* Comprehensive markdown styling */
+.markdown-wrapper {
+  overflow-wrap: break-word;
+}
+
+.markdown-wrapper a {
+  color: #6941C6;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-wrapper h1, 
+.markdown-wrapper h2, 
+.markdown-wrapper h3, 
+.markdown-wrapper h4, 
+.markdown-wrapper h5, 
+.markdown-wrapper h6 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.25;
+}
+
+.markdown-wrapper h1 {
+  font-size: 1.5rem;
+}
+
+.markdown-wrapper h2 {
+  font-size: 1.25rem;
+}
+
+.markdown-wrapper h3 {
+  font-size: 1.125rem;
+}
+
+.markdown-wrapper p, 
+.markdown-wrapper ul, 
+.markdown-wrapper ol {
+  margin-bottom: 1em;
+}
+
+.markdown-wrapper ul, 
+.markdown-wrapper ol {
+  padding-left: 1.5em;
+}
+
+.markdown-wrapper ul {
+  list-style-type: disc;
+}
+
+.markdown-wrapper ol {
+  list-style-type: decimal;
+}
+
+.markdown-wrapper li {
+  margin-bottom: 0.25em;
+}
+
+.markdown-wrapper blockquote {
+  border-left: 3px solid #E4E7EC;
+  padding-left: 1em;
+  color: #667085;
+  font-style: italic;
+  margin: 1em 0;
+}
+
+.markdown-wrapper img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+
+.markdown-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+
+.markdown-wrapper th,
+.markdown-wrapper td {
+  border: 1px solid #E4E7EC;
+  padding: 0.5em;
+  text-align: left;
+}
+
+.markdown-wrapper th {
+  background-color: #F9FAFB;
+  font-weight: 600;
+}

@@ -1,103 +1,14 @@
 import React from 'react';
 import { ChatMessage } from '@/lib/groq';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGfm from 'remark-gfm';
+import 'highlight.js/styles/atom-one-dark.css';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   streamingResponse: string;
   isLoading: boolean;
-}
-
-// Function to parse and format code blocks
-function formatMessageContent(content: string): React.ReactNode {
-  // Check if message contains code blocks
-  if (!content.includes('```')) {
-    return content;
-  }
-
-  const parts = [];
-  let lastIndex = 0;
-  
-  // Special handling for incomplete code blocks (during streaming)
-  let codeBlocksCount = (content.match(/```/g) || []).length;
-  
-  // If odd number of ``` markers, there's an unclosed code block
-  if (codeBlocksCount % 2 !== 0) {
-    // Handle the case where we're in the middle of a code block stream
-    const startIndex = content.lastIndexOf('```');
-    
-    if (startIndex !== -1) {
-      // Process the content before the last code block marker normally
-      const contentBeforeLastBlock = content.substring(0, startIndex);
-      const processedParts = processCompleteCodeBlocks(contentBeforeLastBlock);
-      parts.push(...processedParts);
-      
-      // Extract the language if it exists
-      const afterBackticks = content.substring(startIndex + 3);
-      const newlineIndex = afterBackticks.indexOf('\n');
-      let language = '';
-      let code = afterBackticks;
-      
-      if (newlineIndex !== -1) {
-        language = afterBackticks.substring(0, newlineIndex).trim();
-        code = afterBackticks.substring(newlineIndex + 1);
-      }
-      
-      // Add the incomplete code block with proper styling
-      parts.push(
-        <pre key="incomplete-code" className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full">
-          <code className="text-[#D4D4D4] font-mono text-sm">
-            {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
-            {code}
-          </code>
-        </pre>
-      );
-      
-      return parts;
-    }
-  }
-  
-  // Process complete code blocks
-  return processCompleteCodeBlocks(content);
-}
-
-// Helper function to process complete code blocks
-function processCompleteCodeBlocks(content: string): React.ReactNode[] {
-  const parts = [];
-  let lastIndex = 0;
-  
-  // Regular expression to match code blocks
-  const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
-  let match;
-
-  while ((match = codeBlockRegex.exec(content)) !== null) {
-    // Add text before code block
-    if (match.index > lastIndex) {
-      parts.push(<span key={`text-${lastIndex}`}>{content.substring(lastIndex, match.index)}</span>);
-    }
-
-    // Extract language and code
-    const language = match[1] || 'text';
-    const code = match[2];
-
-    // Add code block with proper styling
-    parts.push(
-      <pre key={`code-${match.index}`} className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full">
-        <code className="text-[#D4D4D4] font-mono text-sm">
-          {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
-          {code}
-        </code>
-      </pre>
-    );
-
-    lastIndex = match.index + match[0].length;
-  }
-
-  // Add any remaining text after the last code block
-  if (lastIndex < content.length) {
-    parts.push(<span key={`text-${lastIndex}`}>{content.substring(lastIndex)}</span>);
-  }
-
-  return parts.length > 0 ? parts : [content];
 }
 
 export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMessagesProps) {
@@ -143,11 +54,43 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
             className={`max-w-[80%] px-4 py-3 rounded-xl ${
               message.role === 'user' 
                 ? 'bg-black text-white' 
-                : 'bg-[#F2F4F7] text-[#101828]'
+                : 'bg-[#F2F4F7] text-[#101828] markdown-wrapper'
             }`}
             style={{ fontFamily: "var(--font-inter)" }}
           >
-            {formatMessageContent(message.content)}
+            {message.role === 'user' ? (
+              <div className="whitespace-pre-wrap">{message.content}</div>
+            ) : (
+              <div className="markdown-wrapper">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    pre: ({ node, ...props }) => (
+                      <pre className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full" {...props} />
+                    ),
+                    code: ({ node, inline, className, children, ...props }) => {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const language = match ? match[1] : '';
+                      return !inline ? (
+                        <div>
+                          {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
+                          <code className="text-[#D4D4D4] font-mono text-sm" {...props}>
+                            {children}
+                          </code>
+                        </div>
+                      ) : (
+                        <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-sm" {...props}>
+                          {children}
+                        </code>
+                      );
+                    }
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
         </div>
       ))}
@@ -156,10 +99,38 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
       {streamingResponse && (
         <div className="flex justify-start">
           <div 
-            className="max-w-[80%] px-4 py-3 rounded-xl bg-[#F2F4F7] text-[#101828]"
+            className="max-w-[80%] px-4 py-3 rounded-xl bg-[#F2F4F7] text-[#101828] markdown-wrapper"
             style={{ fontFamily: "var(--font-inter)" }}
           >
-            {formatMessageContent(streamingResponse)}
+            <div className="markdown-wrapper">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  pre: ({ node, ...props }) => (
+                    <pre className="bg-[#1E1E1E] rounded-md p-3 my-2 overflow-x-auto w-full" {...props} />
+                  ),
+                  code: ({ node, inline, className, children, ...props }) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const language = match ? match[1] : '';
+                    return !inline ? (
+                      <div>
+                        {language && <div className="text-xs text-[#999] mb-2">{language}</div>}
+                        <code className="text-[#D4D4D4] font-mono text-sm" {...props}>
+                          {children}
+                        </code>
+                      </div>
+                    ) : (
+                      <code className="bg-[rgba(0,0,0,0.05)] rounded px-1 py-0.5 font-mono text-sm" {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                }}
+              >
+                {streamingResponse}
+              </ReactMarkdown>
+            </div>
             {isLoading && (
               <span className="inline-block ml-1 animate-pulse">▋</span>
             )}
