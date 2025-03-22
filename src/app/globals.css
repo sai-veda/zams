@@ -177,3 +177,45 @@
     background-position: 0% center;
   }
 }
+
+/* Code block styling */
+pre {
+  position: relative;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+}
+
+pre code {
+  display: block;
+  padding: 1rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Custom scrollbar for code blocks */
+pre::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+pre::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* Better inline code styling */
+code:not(pre code) {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+}
