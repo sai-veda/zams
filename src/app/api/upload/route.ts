@@ -45,10 +45,11 @@ export async function POST(req: NextRequest) {
       }),
       { headers: { 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error processing upload';
     return new Response(
-      JSON.stringify({ error: error.message || 'Error processing upload' }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

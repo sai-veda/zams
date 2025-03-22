@@ -66,10 +66,10 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                   components={{
-                    pre: ({ node, ...props }) => (
+                    pre: ({ ...props }) => (
                       <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                     ),
-                    code: ({ node, inline, className, children, ...props }) => {
+                    code: ({ inline, className, children, ...props }) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const language = match ? match[1] : '';
                       return !inline ? (
@@ -107,10 +107,10 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
                 components={{
-                  pre: ({ node, ...props }) => (
+                  pre: ({ ...props }) => (
                     <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                   ),
-                  code: ({ node, inline, className, children, ...props }) => {
+                  code: ({ inline, className, children, ...props }) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : '';
                     return !inline ? (

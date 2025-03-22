@@ -127,6 +127,7 @@ export function ChatInput({
               }
             } catch (e) {
               // Ignore parse errors for incomplete chunks
+              console.debug('Parse error on chunk, ignoring', e);
             }
           }
         }
@@ -145,7 +146,7 @@ export function ChatInput({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType]);
+  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType, streamingResponse]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
