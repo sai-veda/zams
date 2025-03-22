@@ -3,15 +3,15 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#FAFAFA] px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#FAFAFA] px-4 sm:px-6 lg:px-8 relative pb-12">
       <div className="flex flex-col max-w-[800px] w-full mx-auto space-y-1 sm:space-y-2">
         {/* Logo */}
-        <div className="flex items-center mb-8 sm:mb-12">
+        <div className="flex items-center mb-6 sm:mb-8">
           <Image 
             src="/logo-dark.svg" 
             alt="Logo" 
-            width={35} 
-            height={19}
+            width={100} 
+            height={30}
             priority
           />
         </div>
@@ -26,8 +26,11 @@ export default function Home() {
         
         {/* What'd you like to ask today? - with static gradient */}
         <h2 
-          className="text-4xl sm:text-5xl font-semibold mb-10 sm:mb-16 gradient-text-2 text-left"
-          style={{ fontFamily: "var(--font-sherpa)" }}
+          className="text-4xl sm:text-5xl font-semibold mb-6 sm:mb-10 gradient-text-2 text-left"
+          style={{ 
+            fontFamily: "var(--font-sherpa)",
+            lineHeight: "1.2"  // Added line height to prevent text cut-off
+          }}
         >
           What&apos;d you like to ask today?
         </h2>
@@ -36,18 +39,15 @@ export default function Home() {
           <Input 
             type="text" 
             placeholder="Ask whatever you want.." 
-            className="w-full px-4 pt-5 pb-14 text-base font-normal rounded-xl border border-[#E4E7EC] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] focus:outline-none focus:ring-0 focus:border-gray-300"
+            className="w-full px-4 pt-8 pb-20 text-base font-normal rounded-xl border border-[#E4E7EC] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] focus:outline-none focus:ring-0 focus:border-gray-300"
             style={{ 
               fontFamily: "var(--font-inter)",
               color: "#667085" 
             }}
           />
           
-          {/* Response type dropdown with updated styling */}
+          {/* Response type dropdown with updated styling - moved icon to right */}
           <div className="absolute left-4 bottom-4 flex items-center gap-1">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 7L8 10L11 7" stroke="#6941C6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
             <span style={{ 
               fontFamily: "var(--font-inter)",
               fontWeight: 500,
@@ -59,6 +59,9 @@ export default function Home() {
             }}>
               Response Type
             </span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7L8 10L11 7" stroke="#6941C6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
           
           {/* Add attachment button */}
@@ -102,6 +105,20 @@ export default function Home() {
             </svg>
           </button>
         </div>
+      </div>
+      
+      {/* Footer text */}
+      <div className="absolute bottom-6 w-full text-center">
+        <p style={{
+          fontFamily: "var(--font-inter)",
+          fontWeight: 400,
+          fontSize: "12px",
+          lineHeight: "24px",
+          letterSpacing: "0%",
+          color: "#8A8A8A"
+        }}>
+          Your chats aren't used to train our models. Obviously AI may make mistakes, so please double-check. Your privacy is our priority.
+        </p>
       </div>
     </div>
   );
