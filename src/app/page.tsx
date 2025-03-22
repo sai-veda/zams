@@ -117,7 +117,7 @@ export default function Home() {
           letterSpacing: "0%",
           color: "#8A8A8A"
         }}>
-          Your chats aren't used to train our models. Obviously AI may make mistakes, so please double-check. Your privacy is our priority.
+          Your chats aren&apos;t used to train our models. Obviously AI may make mistakes, so please double-check. Your privacy is our priority.
         </p>
       </div>
     </div>
