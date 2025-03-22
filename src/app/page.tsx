@@ -26,7 +26,7 @@ export default function Home() {
         
         {/* What'd you like to ask today? - with static gradient */}
         <h2 
-          className="text-4xl sm:text-5xl font-semibold mb-6 sm:mb-10 gradient-text-2 text-left"
+          className="text-4xl sm:text-5xl font-semibold mb-4 sm:mb-6 gradient-text-2 text-left"
           style={{ 
             fontFamily: "var(--font-sherpa)",
             lineHeight: "1.2"  // Added line height to prevent text cut-off
@@ -39,13 +39,13 @@ export default function Home() {
           <Input 
             type="text" 
             placeholder="Ask whatever you want.." 
-            className="w-full px-4 pt-8 pb-20 text-base font-normal rounded-xl border border-[#E4E7EC] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] focus:outline-none focus:ring-0 focus:border-gray-300"
+            className="w-full px-4 pt-12 pb-28 text-base font-normal rounded-xl border border-[#E4E7EC] shadow-[0_1px_2px_0_rgba(10,13,18,0.05)] focus:outline-none focus:ring-0 focus:border-[#E4E7EC] focus-visible:ring-0"
             style={{ 
               fontFamily: "var(--font-inter)",
-              color: "#667085" 
+              color: "#667085",
+              height: "calc(2 * (8px + 20px + 1em))" // Doubling the effective height
             }}
           />
-          
           {/* Response type dropdown with updated styling - moved icon to right */}
           <div className="absolute left-4 bottom-4 flex items-center gap-1">
             <span style={{ 
