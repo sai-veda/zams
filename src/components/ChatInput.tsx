@@ -1,28 +1,22 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { ChatMessage } from '@/lib/groq';
+import { useAppStore } from '@/lib/store';
+import { ChatMessage } from '@/lib/store';
 
-interface ChatInputProps {
-  messages: ChatMessage[];
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  streamingResponse: string;
-  setStreamingResponse: React.Dispatch<React.SetStateAction<string>>;
-  isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-type ResponseType = 'concise' | 'detailed' | null;
-
-export function ChatInput({
-  messages,
-  setMessages,
-  setStreamingResponse,
-  isLoading,
-  setIsLoading
-}: ChatInputProps) {
+export function ChatInput() {
+  const {
+    messages,
+    setMessages,
+    addMessage,
+    streamingResponse,
+    setStreamingResponse,
+    isLoading,
+    setIsLoading
+  } = useAppStore();
+  
   const [input, setInput] = useState<string>('');
-  const [responseType, setResponseType] = useState<ResponseType>(null);
+  const [responseType, setResponseType] = useState<'concise' | 'detailed' | null>(null);
   const [showResponseTypeDropdown, setShowResponseTypeDropdown] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +69,7 @@ export function ChatInput({
       }
       
       // Add message after successful file upload (if any)
-      setMessages(prev => [...prev, userMessage]);
+      addMessage(userMessage);
       setInput('');
       setFile(null);
       
@@ -134,10 +128,7 @@ export function ChatInput({
       
       // Add final response to messages after streaming completes
       if (responseText) {
-        setMessages(prev => [
-          ...prev, 
-          { role: 'assistant', content: responseText }
-        ]);
+        addMessage({ role: 'assistant', content: responseText });
         setStreamingResponse('');
       }
     } catch (error) {
@@ -145,7 +136,7 @@ export function ChatInput({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType]);
+  }, [input, isLoading, messages, setIsLoading, setStreamingResponse, file, responseType, addMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

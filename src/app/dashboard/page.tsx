@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
-import { PanelLeft, PlusCircle, Search, MoreVertical } from "lucide-react"
+import { PanelLeft, PlusCircle, Search, MoreVertical, ArrowUpDown } from "lucide-react"
 import { Sidebar } from "@/components/Sidebar";
+import { useAppStore } from "@/lib/store";
 
 // Interface definitions for better type safety
 interface Datasource {
@@ -16,9 +17,17 @@ interface Datasource {
 }
 
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // Get state and actions from the store
+  const {
+    searchQuery,
+    setSearchQuery,
+    isSidebarMinimized,
+    setIsSidebarMinimized,
+    isMobile,
+    setIsMobile,
+    toggleSidebar,
+    datasources
+  } = useAppStore();
   
   useEffect(() => {
     // Check if we're on mobile and set sidebar minimized by default
@@ -35,11 +44,7 @@ export default function Dashboard() {
     
     // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-  
-  const toggleSidebar = () => {
-    setIsSidebarMinimized(!isSidebarMinimized);
-  };
+  }, [setIsMobile, setIsSidebarMinimized]);
   
   const closeSidebar = () => {
     if (isMobile && !isSidebarMinimized) {
@@ -47,26 +52,6 @@ export default function Dashboard() {
     }
   };
   
-  // Mock data based on the screenshot
-  const datasources: Datasource[] = [
-    { id: 1, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Jan 6 2024", createdBy: "Olivia Ryhe" },
-    { id: 2, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Jan 28 2024", createdBy: "Natalie Crag" },
-    { id: 3, name: "Products", type: "CSV", status: "Uploaded", createdAt: "Feb 4 2024", createdBy: "Phoenix Baker" },
-    { id: 4, name: "user - data", type: "CSV", status: "Connected", createdAt: "Feb 8 2024", createdBy: "Natalie Crag" },
-    { id: 5, name: "website - data", type: "DOCX", status: "Uploaded", createdAt: "March 7 2024", createdBy: "Olivia Ryhe" },
-    { id: 6, name: "website - data", type: "CSV", status: "Uploaded", createdAt: "March 7 2024", createdBy: "Phoenix Baker" },
-    { id: 7, name: "Server Files", type: "DOCX", status: "Uploaded", createdAt: "March 21 2024", createdBy: "Natalie Crag" },
-    { id: 8, name: "website - data", type: "CSV", status: "Uploaded", createdAt: "March 28 2024", createdBy: "Olivia Ryhe" },
-    { id: 9, name: "user - data", type: "PDF", status: "Connected", createdAt: "June 9 2024", createdBy: "Natalie Crag" },
-    { id: 10, name: "user - data", type: "DOCX", status: "Connected", createdAt: "June 29 2024", createdBy: "Olivia Ryhe" },
-    { id: 11, name: "user - data", type: "DOCX", status: "Connected", createdAt: "July 2 2024", createdBy: "Phoenix Baker" },
-    { id: 12, name: "user - data", type: "DOCX", status: "Uploaded", createdAt: "Aug 1 2024", createdBy: "Natalie Crag" },
-    { id: 13, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Sept 21 2024", createdBy: "Olivia Ryhe" },
-    { id: 14, name: "Server Files", type: "CSV", status: "Connected", createdAt: "Sept 21 2024", createdBy: "Natalie Crag" },
-    { id: 15, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Sept 21 2024", createdBy: "Olivia Ryhe" },
-    { id: 16, name: "Server Files", type: "CSV", status: "Connected", createdAt: "Sept 21 2024", createdBy: "Natalie Crag" },
-  ];
-
   // Helper functions for styling
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -97,10 +82,7 @@ export default function Dashboard() {
       {sortable ? (
         <div className="flex items-center">
           {label}
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
-            <path d="M4 7L8 3L12 7" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 9L8 13L12 9" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <ArrowUpDown size={16} className="ml-1 text-[#667085]" />
         </div>
       ) : (
         label

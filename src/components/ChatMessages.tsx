@@ -1,18 +1,14 @@
 import React from 'react';
-import { ChatMessage } from '@/lib/groq';
+import { useAppStore } from '@/lib/store';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import 'highlight.js/styles/atom-one-dark.css';
 import { ComponentPropsWithoutRef } from 'react';
 
-interface ChatMessagesProps {
-  messages: ChatMessage[];
-  streamingResponse: string;
-  isLoading: boolean;
-}
-
-export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMessagesProps) {
+export function ChatMessages() {
+  const { messages, streamingResponse, isLoading } = useAppStore();
+  
   // Reference to scroll to bottom when new messages arrive
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const messagesContainerRef = React.useRef<HTMLDivElement>(null);

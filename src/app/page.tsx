@@ -2,8 +2,28 @@
 
 import Image from "next/image";
 import { Chat } from "@/components/Chat";
+import { useAppStore } from "@/lib/store";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { setIsMobile } = useAppStore();
+  
+  useEffect(() => {
+    // Check if we're on mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Run on initial load
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [setIsMobile]);
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#FAFAFA] px-4 sm:px-6 lg:px-8 relative pb-20">
       <div className="flex flex-col max-w-[800px] w-full mx-auto space-y-1 sm:space-y-2">
