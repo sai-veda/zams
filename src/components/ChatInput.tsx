@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
 import { useAppStore } from '@/lib/store';
 import { ChatMessage } from '@/lib/store';
 
@@ -17,6 +16,7 @@ export function ChatInput() {
   const [responseType, setResponseType] = useState<'concise' | 'detailed' | null>(null);
   const [showResponseTypeDropdown, setShowResponseTypeDropdown] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
+  const [lastProcessedMessageIndex, setLastProcessedMessageIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,17 +37,12 @@ export function ChatInput() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const handleSubmit = useCallback(async () => {
-    if ((!input.trim() && !file) || isLoading) return;
-    
-    // Add user message
-    const userMessage: ChatMessage = { 
-      role: 'user', 
-      content: input.trim() + (file ? `\n\n[Attached file: ${file.name}]` : '') 
-    };
-    
-    setIsLoading(true);
+  
+  const handleSubmitMessage = useCallback(async (content: string) => {
+    if (!content.trim() && !file) {
+      setIsLoading(false);
+      return;
+    }
     
     try {
       // Upload file if present
@@ -66,14 +61,13 @@ export function ChatInput() {
         }
       }
       
-      // Add message after successful file upload (if any)
-      addMessage(userMessage);
+      // Reset UI state
       setInput('');
       setFile(null);
       
       // Create request body for chat
       const requestBody = {
-        messages: [...messages, userMessage],
+        messages,
         responseType: responseType || 'concise' // Default to concise if not selected
       };
       
@@ -134,7 +128,38 @@ export function ChatInput() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, setIsLoading, setStreamingResponse, file, responseType, addMessage]);
+  }, [messages, setIsLoading, setStreamingResponse, file, responseType, addMessage]);
+  
+  // Handle automatic submission when loading is triggered externally
+  useEffect(() => {
+    // Only process if we're loading and have messages
+    if (isLoading && messages.length > 0) {
+      // Check if the last message is from user and not yet processed
+      const currentIndex = messages.length - 1;
+      const lastMessage = messages[currentIndex];
+      
+      if (lastMessage.role === 'user' && currentIndex > lastProcessedMessageIndex) {
+        handleSubmitMessage(lastMessage.content);
+        setLastProcessedMessageIndex(currentIndex);
+      }
+    }
+  }, [isLoading, messages, lastProcessedMessageIndex, handleSubmitMessage]);
+
+  const handleSubmit = useCallback(async () => {
+    if ((!input.trim() && !file) || isLoading) return;
+    
+    // Add user message
+    const userMessage: ChatMessage = { 
+      role: 'user', 
+      content: input.trim() + (file ? `\n\n[Attached file: ${file.name}]` : '') 
+    };
+    
+    // Add message and trigger loading state
+    addMessage(userMessage);
+    setIsLoading(true);
+    
+    // The rest will be handled by the useEffect that watches isLoading
+  }, [input, isLoading, addMessage, setIsLoading, file]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -173,73 +198,65 @@ export function ChatInput() {
       {/* Responsive controls container */}
       <div className="absolute left-0 right-0 bottom-0 flex items-center px-4 pb-4 justify-between">
         {/* Left controls group */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Response type dropdown */}
-          <div className="flex items-center gap-1">
-            <Image 
-              src="/feather.svg" 
-              alt="Feather" 
-              width={14} 
-              height={14} 
-              className="hidden sm:block mr-1"
-              style={{ color: "#667085" }}
-            />
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setShowResponseTypeDropdown(!showResponseTypeDropdown)}
-                className="flex items-center gap-1"
+        <div className="flex items-center space-x-2">
+          {/* Response type selector */}
+          <div ref={dropdownRef} className="relative">
+            <button
+              onClick={() => setShowResponseTypeDropdown(!showResponseTypeDropdown)}
+              className="flex items-center gap-1"
+              disabled={isLoading}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <path d="M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z" stroke="#667085" strokeWidth="1.5"/>
+                <path d="M8 4V8L11 10" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ 
+                fontFamily: "var(--font-inter)",
+                fontWeight: 500,
+                fontSize: "11px",
+                lineHeight: "16px",
+                letterSpacing: "0%",
+                textAlign: "center",
+                color: "#667085"
+              }}
+                className="text-[11px] sm:text-xs"
               >
-                <span style={{ 
-                  fontFamily: "var(--font-inter)",
-                  fontWeight: 500,
-                  fontSize: "11px",
-                  lineHeight: "16px",
-                  letterSpacing: "0%",
-                  textAlign: "center",
-                  color: "#667085"
-                }}
-                  className="text-[11px] sm:text-xs"
+                {responseType === 'detailed' ? 'Detailed' : 'Concise'}
+              </span>
+            </button>
+            
+            {showResponseTypeDropdown && (
+              <div className="absolute left-0 top-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[100px] border border-[#E4E7EC]">
+                <button
+                  className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'concise' ? 'bg-[#F9FAFB]' : ''}`}
+                  style={{ 
+                    fontFamily: "var(--font-inter)",
+                    fontSize: "11px",
+                    color: "#667085"
+                  }}
+                  onClick={() => {
+                    setResponseType('concise');
+                    setShowResponseTypeDropdown(false);
+                  }}
                 >
-                  {responseType ? (responseType === 'concise' ? 'Concise' : 'Detailed') : 'Response Type'}
-                </span>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                  <path d="M5 7L8 10L11 7" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              
-              {showResponseTypeDropdown && (
-                <div className="absolute left-0 top-8 bg-white rounded-md shadow-md p-2 z-10 min-w-[100px] border border-[#E4E7EC]">
-                  <button
-                    className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'concise' ? 'bg-[#F9FAFB]' : ''}`}
-                    style={{ 
-                      fontFamily: "var(--font-inter)",
-                      fontSize: "11px",
-                      color: "#667085"
-                    }}
-                    onClick={() => {
-                      setResponseType('concise');
-                      setShowResponseTypeDropdown(false);
-                    }}
-                  >
-                    Concise
-                  </button>
-                  <button
-                    className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'detailed' ? 'bg-[#F9FAFB]' : ''}`}
-                    style={{ 
-                      fontFamily: "var(--font-inter)",
-                      fontSize: "11px",
-                      color: "#667085"
-                    }}
-                    onClick={() => {
-                      setResponseType('detailed');
-                      setShowResponseTypeDropdown(false);
-                    }}
-                  >
-                    Detailed
-                  </button>
-                </div>
-              )}
-            </div>
+                  Concise
+                </button>
+                <button
+                  className={`w-full text-left px-2 py-1.5 rounded ${responseType === 'detailed' ? 'bg-[#F9FAFB]' : ''}`}
+                  style={{ 
+                    fontFamily: "var(--font-inter)",
+                    fontSize: "11px",
+                    color: "#667085"
+                  }}
+                  onClick={() => {
+                    setResponseType('detailed');
+                    setShowResponseTypeDropdown(false);
+                  }}
+                >
+                  Detailed
+                </button>
+              </div>
+            )}
           </div>
           
           {/* Add attachment button */}
