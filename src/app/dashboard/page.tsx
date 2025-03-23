@@ -6,16 +6,6 @@ import { PanelLeft, PlusCircle, Search, MoreVertical, ArrowUpDown } from "lucide
 import { Sidebar } from "@/components/Sidebar";
 import { useAppStore } from "@/lib/store";
 
-// Interface definitions for better type safety
-interface Datasource {
-  id: number;
-  name: string;
-  type: "PDF" | "CSV" | "DOCX";
-  status: "Uploaded" | "Connected";
-  createdAt: string;
-  createdBy: string;
-}
-
 export default function Dashboard() {
   // Get state and actions from the store
   const {

@@ -7,9 +7,7 @@ import { ChatMessage } from '@/lib/store';
 export function ChatInput() {
   const {
     messages,
-    setMessages,
     addMessage,
-    streamingResponse,
     setStreamingResponse,
     isLoading,
     setIsLoading
