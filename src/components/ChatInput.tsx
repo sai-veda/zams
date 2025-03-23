@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { useAppStore } from '@/lib/store';
 import { ChatMessage } from '@/lib/store';
+import Image from 'next/image';
 
 export function ChatInput() {
   const {
@@ -13,7 +14,7 @@ export function ChatInput() {
   } = useAppStore();
   
   const [input, setInput] = useState<string>('');
-  const [responseType, setResponseType] = useState<'concise' | 'detailed' | null>(null);
+  const [responseType, setResponseType] = useState<'concise' | 'detailed' | null>('concise');
   const [showResponseTypeDropdown, setShowResponseTypeDropdown] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
   const [lastProcessedMessageIndex, setLastProcessedMessageIndex] = useState<number>(-1);
@@ -206,10 +207,13 @@ export function ChatInput() {
               className="flex items-center gap-1"
               disabled={isLoading}
             >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                <path d="M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z" stroke="#667085" strokeWidth="1.5"/>
-                <path d="M8 4V8L11 10" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Image 
+                src="/feather.svg" 
+                width={14} 
+                height={14} 
+                alt="Response type" 
+                className="flex-shrink-0" 
+              />
               <span style={{ 
                 fontFamily: "var(--font-inter)",
                 fontWeight: 500,
@@ -221,7 +225,7 @@ export function ChatInput() {
               }}
                 className="text-[11px] sm:text-xs"
               >
-                {responseType === 'detailed' ? 'Detailed' : 'Concise'}
+                Response Type
               </span>
             </button>
             
