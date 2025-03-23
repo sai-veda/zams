@@ -24,6 +24,12 @@ interface User {
   avatar?: string;
 }
 
+// Define filter types
+export type FilterType = "PDF" | "CSV" | "DOCX" | null;
+export type FilterStatus = "Uploaded" | "Connected" | null;
+export type SortField = "createdAt" | "createdBy" | null;
+export type SortDirection = "asc" | "desc";
+
 // Define our store state
 interface AppState {
   // UI state
@@ -36,6 +42,11 @@ interface AppState {
   // Datasources state
   datasources: Datasource[];
   searchQuery: string;
+  typeFilter: FilterType;
+  statusFilter: FilterStatus;
+  sortField: SortField;
+  sortDirection: SortDirection;
+  isAddDataModalOpen: boolean;
   
   // Chat state
   messages: ChatMessage[];
@@ -47,6 +58,13 @@ interface AppState {
   toggleSidebar: () => void;
   setIsMobile: (value: boolean) => void;
   setSearchQuery: (query: string) => void;
+  setTypeFilter: (type: FilterType) => void;
+  setStatusFilter: (status: FilterStatus) => void;
+  setSortField: (field: SortField) => void;
+  setSortDirection: (direction: SortDirection) => void;
+  toggleSortDirection: () => void;
+  addDatasource: (datasource: Omit<Datasource, 'id'>) => void;
+  toggleAddDataModal: () => void;
   setUser: (user: User | null) => void;
   addMessage: (message: ChatMessage) => void;
   setMessages: (messages: ChatMessage[]) => void;
@@ -85,13 +103,18 @@ const mockUser: User = {
 // Create the store with zustand
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Initial state
       isSidebarMinimized: false,
       isMobile: false,
       user: mockUser,
       datasources: mockDatasources,
       searchQuery: '',
+      typeFilter: null,
+      statusFilter: null,
+      sortField: null,
+      sortDirection: "asc",
+      isAddDataModalOpen: false,
       messages: [],
       streamingResponse: '',
       isLoading: false,
@@ -101,6 +124,26 @@ export const useAppStore = create<AppState>()(
       toggleSidebar: () => set((state) => ({ isSidebarMinimized: !state.isSidebarMinimized })),
       setIsMobile: (value) => set({ isMobile: value }),
       setSearchQuery: (query) => set({ searchQuery: query }),
+      setTypeFilter: (type) => set({ typeFilter: type }),
+      setStatusFilter: (status) => set({ statusFilter: status }),
+      setSortField: (field) => set({ sortField: field }),
+      setSortDirection: (direction) => set({ sortDirection: direction }),
+      toggleSortDirection: () => set((state) => ({ 
+        sortDirection: state.sortDirection === "asc" ? "desc" : "asc" 
+      })),
+      addDatasource: (datasource) => set((state) => {
+        const newId = Math.max(...state.datasources.map(d => d.id), 0) + 1;
+        return { 
+          datasources: [
+            { id: newId, ...datasource }, 
+            ...state.datasources
+          ],
+          isAddDataModalOpen: false
+        };
+      }),
+      toggleAddDataModal: () => set((state) => ({ 
+        isAddDataModalOpen: !state.isAddDataModalOpen 
+      })),
       setUser: (user) => set({ user }),
       addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
       setMessages: (messages) => set({ messages }),

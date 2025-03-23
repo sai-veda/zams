@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { PanelLeft, PlusCircle, Search, MoreVertical, ArrowUpDown } from "lucide-react"
 import { Sidebar } from "@/components/Sidebar";
+import { FilterDropdown } from "@/components/FilterDropdown";
+import { AddDataModal } from "@/components/AddDataModal";
 import { useAppStore } from "@/lib/store";
+import type { Datasource, SortField, FilterType, FilterStatus } from "@/lib/store"; 
 
 export default function Dashboard() {
   // Get state and actions from the store
@@ -16,7 +19,16 @@ export default function Dashboard() {
     isMobile,
     setIsMobile,
     toggleSidebar,
-    datasources
+    datasources,
+    typeFilter,
+    setTypeFilter,
+    statusFilter,
+    setStatusFilter,
+    sortField,
+    setSortField,
+    sortDirection,
+    toggleSortDirection,
+    toggleAddDataModal
   } = useAppStore();
   
   useEffect(() => {
@@ -42,6 +54,18 @@ export default function Dashboard() {
     }
   };
   
+  // Create type and status filter options
+  const typeOptions = [
+    { value: 'PDF', label: 'PDF' },
+    { value: 'CSV', label: 'CSV' },
+    { value: 'DOCX', label: 'DOCX' },
+  ];
+
+  const statusOptions = [
+    { value: 'Uploaded', label: 'Uploaded' },
+    { value: 'Connected', label: 'Connected' },
+  ];
+
   // Helper functions for styling
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -66,14 +90,78 @@ export default function Dashboard() {
     }
   };
 
+  // Sort and filter datasources
+  const filteredDatasources = useMemo(() => {
+    // First filter based on search query, type, and status
+    let filtered = datasources.filter(item => {
+      const matchesSearch = searchQuery 
+        ? item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.createdBy.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      
+      const matchesType = typeFilter 
+        ? item.type === typeFilter
+        : true;
+      
+      const matchesStatus = statusFilter
+        ? item.status === statusFilter
+        : true;
+      
+      return matchesSearch && matchesType && matchesStatus;
+    });
+
+    // Then sort the filtered results
+    if (sortField) {
+      filtered = [...filtered].sort((a, b) => {
+        if (sortField === 'createdAt') {
+          const dateA = new Date(a.createdAt);
+          const dateB = new Date(b.createdAt);
+          return sortDirection === 'asc' 
+            ? dateA.getTime() - dateB.getTime() 
+            : dateB.getTime() - dateA.getTime();
+        } else if (sortField === 'createdBy') {
+          return sortDirection === 'asc'
+            ? a.createdBy.localeCompare(b.createdBy)
+            : b.createdBy.localeCompare(a.createdBy);
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [datasources, searchQuery, typeFilter, statusFilter, sortField, sortDirection]);
+
+  // Handle sorting clicks
+  const handleSortClick = (field: SortField) => {
+    if (sortField === field) {
+      toggleSortDirection();
+    } else {
+      setSortField(field);
+    }
+  };
+
   // Table header component to reduce repetition
-  const TableHeader = ({ label, sortable = false }: { label: string, sortable?: boolean }) => (
-    <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-      {sortable ? (
-        <div className="flex items-center">
+  const TableHeader = ({ 
+    label, 
+    sortable = false,
+    field = null
+  }: { 
+    label: string, 
+    sortable?: boolean,
+    field?: SortField
+  }) => (
+    <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-medium text-[#71717A] font-sans align-middle">
+      {sortable && field ? (
+        <button
+          className="flex items-center"
+          onClick={() => handleSortClick(field)}
+        >
           {label}
-          <ArrowUpDown size={16} className="ml-1 text-[#667085]" />
-        </div>
+          <ArrowUpDown 
+            size={16} 
+            className={`ml-1 ${sortField === field ? 'text-blue-500' : 'text-[#667085]'}`} 
+          />
+        </button>
       ) : (
         label
       )}
@@ -115,7 +203,7 @@ export default function Dashboard() {
           {/* Page title and description */}
           <h1 className="font-sans text-xl pt-2 font-semibold leading-[1.5] text-[#18181B] mt-4 mb-2">Datasources</h1>
           <div className="max-w-xl">
-            <p className="text-sm text-[#18181B]">Upload files, connect to databases, or integrate with apps.</p>
+            <p className="text-sm font-sans font-normal text-[#182230]">Upload files, connect to databases, or integrate with apps.</p>
           </div>
 
           {/* Search and filters section */}
@@ -129,28 +217,35 @@ export default function Dashboard() {
                 <input
                   type="search"
                   placeholder="Search"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md font-sans font-normal text-sm text-[#71717A] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               
               {/* Filter buttons */}
-              <div className="flex space-x-2 w-full sm:w-auto">
-                <button className="flex items-center px-3 py-2 border border-dashed border-[#E4E4E7] rounded-md text-sm text-[#18181B] w-1/2 sm:w-auto justify-center sm:justify-start">
-                  <PlusCircle size={20} className="mr-2 text-[#667085]" />
-                  Type
-                </button>
-                <button className="flex items-center px-3 py-2 border border-dashed border-[#E4E4E7] rounded-md text-sm text-[#18181B] w-1/2 sm:w-auto justify-center sm:justify-start">
-                  <PlusCircle size={20} className="mr-2 text-[#667085]" />
-                  Status
-                </button>
+              <div className="flex space-x-4 w-full sm:w-auto">
+                <FilterDropdown<FilterType> 
+                  title="Type" 
+                  options={typeOptions} 
+                  value={typeFilter} 
+                  onChange={setTypeFilter}
+                />
+                <FilterDropdown<FilterStatus> 
+                  title="Status" 
+                  options={statusOptions} 
+                  value={statusFilter} 
+                  onChange={setStatusFilter}
+                />
               </div>
             </div>
             
             {/* Action buttons */}
             <div className="flex items-center space-x-2 justify-between sm:justify-end w-full md:w-auto">
-              <button className="px-4 py-2 bg-[#007AFF] text-white rounded-md text-sm flex items-center">
+              <button 
+                className="px-4 py-2 bg-[#007AFF] text-white rounded-md text-sm flex items-center"
+                onClick={toggleAddDataModal}
+              >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
                   <path d="M10 4.16667V15.8333M4.16667 10H15.8333" stroke="white" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -178,47 +273,58 @@ export default function Dashboard() {
                   <TableHeader label="Datasource" />
                   <TableHeader label="Type" />
                   <TableHeader label="Status" />
-                  <TableHeader label="Created at" sortable />
-                  <TableHeader label="Created by" sortable />
+                  <TableHeader label="Created at" sortable field="createdAt" />
+                  <TableHeader label="Created by" sortable field="createdBy" />
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {datasources.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="pl-4 pr-1 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-2 py-4 whitespace-nowrap">
-                      <div className="text-sm font-normal text-[#18181B]">{item.name}</div>
-                    </td>
-                    <td className="px-2 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${getTypeColor(item.type)}`}>
-                        {item.type}
-                      </span>
-                    </td>
-                    <td className="px-2 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium ${getStatusColor(item.status)}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-2 py-4 whitespace-nowrap text-sm text-[#18181B]">
-                      {item.createdAt}
-                    </td>
-                    <td className="px-2 py-4 whitespace-nowrap text-sm text-[#18181B]">
-                      {item.createdBy}
+                {filteredDatasources.length > 0 ? (
+                  filteredDatasources.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="pl-4 pr-1 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap">
+                        <div className="text-sm font-sans font-normal text-[#18181B]">{item.name}</div>
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium font-sans align-middle ${getTypeColor(item.type)}`}>
+                          {item.type}
+                        </span>
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium font-sans align-middle ${getStatusColor(item.status)}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap text-sm font-sans font-normal text-[#18181B] align-middle pr-4">
+                        {item.createdAt}
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap text-sm font-sans font-normal text-[#18181B] align-middle">
+                        {item.createdBy}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
+                      No datasources found. Try adjusting your filters or create a new datasource.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+      
+      {/* Add Data Modal */}
+      <AddDataModal />
     </div>
   );
 } 
