@@ -69,7 +69,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                     pre: ({ ...props }) => (
                       <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                     ),
-                    code: ({ inline, className, children, ...props }) => {
+                    code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const language = match ? match[1] : '';
                       return !inline ? (
@@ -110,7 +110,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                   pre: ({ ...props }) => (
                     <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                   ),
-                  code: ({ inline, className, children, ...props }) => {
+                  code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : '';
                     return !inline ? (
