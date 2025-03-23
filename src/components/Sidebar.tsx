@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Bot, ChevronUp, ChevronDown, Settings, Map } from "lucide-react"
+import { Plus, Bot, ChevronUp, ChevronDown, Settings, Map, ChevronRight, ChevronLeft } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,7 +17,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   onToggleMinimize?: () => void;
 }
 
-export function Sidebar({ className, isMinimized = false }: SidebarProps) {
+export function Sidebar({ className, isMinimized = false, onToggleMinimize }: SidebarProps) {
   const pathname = usePathname()
   
   // Mock navigation function to prevent 404s
@@ -37,11 +37,11 @@ export function Sidebar({ className, isMinimized = false }: SidebarProps) {
       {/* Logo and brand */}
       <Link href="/" className={cn("flex items-center cursor-pointer", isMinimized ? "justify-center" : "space-x-2", "mb-6")}>
         <div className="w-7 h-7 bg-[#007AFF] rounded-md flex items-center justify-center">
-          <img 
+          <Image 
             src="/logo_dashboard.svg" 
             alt="Zams Logo" 
-            width="16" 
-            height="16" 
+            width={16} 
+            height={16} 
           />
         </div>
         {!isMinimized && (
@@ -164,7 +164,7 @@ export function Sidebar({ className, isMinimized = false }: SidebarProps) {
       </div>
       
       {/* User profile and collapse button at bottom */}
-      <div className="mt-auto pt-4">
+      <div className="mt-auto pt-4 flex flex-col gap-3">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -174,9 +174,11 @@ export function Sidebar({ className, isMinimized = false }: SidebarProps) {
               )}>
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-md overflow-hidden">
-                    <img 
+                    <Image 
                       src="/john_doe.png" 
                       alt="John Doe" 
+                      width={32}
+                      height={32}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -199,6 +201,33 @@ export function Sidebar({ className, isMinimized = false }: SidebarProps) {
               </div>
             </TooltipTrigger>
             {isMinimized && <TooltipContent side="right">John Doe<br />john.doe@zams.com</TooltipContent>}
+          </Tooltip>
+        </TooltipProvider>
+        
+        {/* Toggle sidebar button */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "flex items-center justify-center border border-gray-200 rounded-md hover:bg-gray-100",
+                  isMinimized ? "w-10 h-10 mx-auto p-0" : "w-full"
+                )}
+                onClick={onToggleMinimize}
+              >
+                {isMinimized ? (
+                  <ChevronRight size={16} className="text-[#3F3F46]" />
+                ) : (
+                  <div className="flex items-center w-full justify-between">
+                    <span className="text-xs text-[#3F3F46]">Collapse sidebar</span>
+                    <ChevronLeft size={16} className="text-[#3F3F46]" />
+                  </div>
+                )}
+              </Button>
+            </TooltipTrigger>
+            {isMinimized && <TooltipContent side="right">Expand sidebar</TooltipContent>}
           </Tooltip>
         </TooltipProvider>
       </div>

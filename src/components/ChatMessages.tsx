@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import 'highlight.js/styles/atom-one-dark.css';
+import { ComponentPropsWithoutRef } from 'react';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -69,7 +70,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                     pre: ({ ...props }) => (
                       <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                     ),
-                    code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => {
+                    code: ({ inline, className, children, ...props }: ComponentPropsWithoutRef<'code'> & { inline?: boolean; className?: string }) => {
                       const match = /language-(\w+)/.exec(className || '');
                       const language = match ? match[1] : '';
                       return !inline ? (
@@ -110,7 +111,7 @@ export function ChatMessages({ messages, streamingResponse, isLoading }: ChatMes
                   pre: ({ ...props }) => (
                     <pre className="bg-[#1E1E1E] rounded-md p-2 sm:p-3 my-2 overflow-x-auto w-full" {...props} />
                   ),
-                  code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => {
+                  code: ({ inline, className, children, ...props }: ComponentPropsWithoutRef<'code'> & { inline?: boolean; className?: string }) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : '';
                     return !inline ? (

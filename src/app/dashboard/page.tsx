@@ -7,6 +7,11 @@ import { Sidebar } from "@/components/Sidebar";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
+  
+  const toggleSidebar = () => {
+    setIsSidebarMinimized(!isSidebarMinimized);
+  };
   
   // Mock data based on the screenshot
   const datasources = [
@@ -55,13 +60,13 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar isMinimized={isSidebarMinimized} onToggleMinimize={toggleSidebar} />
       
       {/* Main content */}
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center mb-2">
-            <button className="mr-2">
+            <button className="mr-2" onClick={toggleSidebar}>
               <PanelLeft size={16} className="text-[#3F3F46]" />
             </button>
             <div className="h-4 border-r border-[#E4E4E7] mx-2"></div>

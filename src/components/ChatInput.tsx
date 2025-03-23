@@ -17,7 +17,6 @@ type ResponseType = 'concise' | 'detailed' | null;
 export function ChatInput({
   messages,
   setMessages,
-  streamingResponse,
   setStreamingResponse,
   isLoading,
   setIsLoading
@@ -146,7 +145,7 @@ export function ChatInput({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType, streamingResponse]);
+  }, [input, isLoading, messages, setIsLoading, setMessages, setStreamingResponse, file, responseType]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
