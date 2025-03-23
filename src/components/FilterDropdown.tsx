@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, ChevronDown, PlusCircle } from 'lucide-react';
+import { Check, X, PlusCircle } from 'lucide-react';
 
 interface FilterDropdownProps<T extends string | null> {
   title: string;
@@ -97,7 +97,7 @@ export function FilterDropdown<T extends string | null>({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 z-10 mt-1 w-48 rounded-md bg-white shadow-lg border border-gray-200">
+        <div className="absolute left-0 z-10 mt-1 w-48 rounded-md bg-white shadow-lg border border-gray-200 max-w-[90vw]">
           <div className="py-1">
             {options.map((option) => (
               <button

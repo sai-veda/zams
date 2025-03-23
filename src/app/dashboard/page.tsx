@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { PanelLeft, PlusCircle, Search, MoreVertical, ArrowUpDown } from "lucide-react"
+import { PanelLeft, Search, MoreVertical, ArrowUpDown } from "lucide-react"
 import { Sidebar } from "@/components/Sidebar";
 import { FilterDropdown } from "@/components/FilterDropdown";
 import { AddDataModal } from "@/components/AddDataModal";
 import { useAppStore } from "@/lib/store";
-import type { Datasource, SortField, FilterType, FilterStatus } from "@/lib/store"; 
+import type { SortField, FilterType, FilterStatus } from "@/lib/store"; 
 
 export default function Dashboard() {
   // Get state and actions from the store
@@ -224,19 +224,23 @@ export default function Dashboard() {
               </div>
               
               {/* Filter buttons */}
-              <div className="flex space-x-4 w-full sm:w-auto">
-                <FilterDropdown<FilterType> 
-                  title="Type" 
-                  options={typeOptions} 
-                  value={typeFilter} 
-                  onChange={setTypeFilter}
-                />
-                <FilterDropdown<FilterStatus> 
-                  title="Status" 
-                  options={statusOptions} 
-                  value={statusFilter} 
-                  onChange={setStatusFilter}
-                />
+              <div className="flex space-x-2 w-full sm:w-auto">
+                <div className="w-1/2 sm:w-auto">
+                  <FilterDropdown<FilterType> 
+                    title="Type" 
+                    options={typeOptions} 
+                    value={typeFilter} 
+                    onChange={setTypeFilter}
+                  />
+                </div>
+                <div className="w-1/2 sm:w-auto">
+                  <FilterDropdown<FilterStatus> 
+                    title="Status" 
+                    options={statusOptions} 
+                    value={statusFilter} 
+                    onChange={setStatusFilter}
+                  />
+                </div>
               </div>
             </div>
             

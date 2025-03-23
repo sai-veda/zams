@@ -103,7 +103,7 @@ const mockUser: User = {
 // Create the store with zustand
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       isSidebarMinimized: false,
       isMobile: false,
