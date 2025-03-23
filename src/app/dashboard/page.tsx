@@ -1,20 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, PlusCircle, Search, MoreVertical } from "lucide-react"
 import { Sidebar } from "@/components/Sidebar";
+
+// Interface definitions for better type safety
+interface Datasource {
+  id: number;
+  name: string;
+  type: "PDF" | "CSV" | "DOCX";
+  status: "Uploaded" | "Connected";
+  createdAt: string;
+  createdBy: string;
+}
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    // Check if we're on mobile and set sidebar minimized by default
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsSidebarMinimized(window.innerWidth < 768);
+    };
+    
+    // Run on initial load
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const toggleSidebar = () => {
     setIsSidebarMinimized(!isSidebarMinimized);
   };
   
+  const closeSidebar = () => {
+    if (isMobile && !isSidebarMinimized) {
+      setIsSidebarMinimized(true);
+    }
+  };
+  
   // Mock data based on the screenshot
-  const datasources = [
+  const datasources: Datasource[] = [
     { id: 1, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Jan 6 2024", createdBy: "Olivia Ryhe" },
     { id: 2, name: "website - data", type: "PDF", status: "Uploaded", createdAt: "Jan 28 2024", createdBy: "Natalie Crag" },
     { id: 3, name: "Products", type: "CSV", status: "Uploaded", createdAt: "Feb 4 2024", createdBy: "Phoenix Baker" },
@@ -33,6 +67,7 @@ export default function Dashboard() {
     { id: 16, name: "Server Files", type: "CSV", status: "Connected", createdAt: "Sept 21 2024", createdBy: "Natalie Crag" },
   ];
 
+  // Helper functions for styling
   const getTypeColor = (type: string) => {
     switch (type) {
       case "PDF":
@@ -49,7 +84,6 @@ export default function Dashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Uploaded":
-        return "bg-green-50 text-[#067647]";
       case "Connected":
         return "bg-green-50 text-[#067647]";
       default:
@@ -57,14 +91,42 @@ export default function Dashboard() {
     }
   };
 
+  // Table header component to reduce repetition
+  const TableHeader = ({ label, sortable = false }: { label: string, sortable?: boolean }) => (
+    <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
+      {sortable ? (
+        <div className="flex items-center">
+          {label}
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
+            <path d="M4 7L8 3L12 7" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 9L8 13L12 9" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      ) : (
+        label
+      )}
+    </th>
+  );
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar isMinimized={isSidebarMinimized} onToggleMinimize={toggleSidebar} />
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Sidebar - only show when not minimized on mobile */}
+      <div className={`${isMobile && isSidebarMinimized ? 'hidden' : 'block'} ${isMobile ? 'absolute z-20 h-full' : ''}`}>
+        <Sidebar isMinimized={isSidebarMinimized} onToggleMinimize={toggleSidebar} />
+      </div>
+      
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobile && !isSidebarMinimized && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-md z-10"
+          onClick={closeSidebar}
+        ></div>
+      )}
       
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-6">
+        <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-6">
+          {/* Header navigation */}
           <div className="flex items-center mb-2">
             <button className="mr-2" onClick={toggleSidebar}>
               <PanelLeft size={16} className="text-[#3F3F46]" />
@@ -74,46 +136,48 @@ export default function Dashboard() {
               href="/dashboard"
               className="inline-flex items-center"
             >
-
               <span className="ml-2 text-sm font-normal text-[#18181B]">Datasources</span>
             </Link>
           </div>
 
+          {/* Page title and description */}
           <h1 className="font-sans text-xl pt-2 font-semibold leading-[1.5] text-[#18181B] mt-4 mb-2">Datasources</h1>
-          <div>
+          <div className="max-w-xl">
             <p className="text-sm text-[#18181B]">Upload files, connect to databases, or integrate with apps.</p>
           </div>
 
+          {/* Search and filters section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 mt-6">
-            <div className="relative w-full md:w-1/3">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#667085" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full max-w-xl">
+              {/* Search input */}
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search size={20} className="text-[#667085]" />
+                </div>
+                <input
+                  type="search"
+                  placeholder="Search"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-              <input
-                type="search"
-                placeholder="Search"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              
+              {/* Filter buttons */}
+              <div className="flex space-x-2 w-full sm:w-auto">
+                <button className="flex items-center px-3 py-2 border border-dashed border-[#E4E4E7] rounded-md text-sm text-[#18181B] w-1/2 sm:w-auto justify-center sm:justify-start">
+                  <PlusCircle size={20} className="mr-2 text-[#667085]" />
+                  Type
+                </button>
+                <button className="flex items-center px-3 py-2 border border-dashed border-[#E4E4E7] rounded-md text-sm text-[#18181B] w-1/2 sm:w-auto justify-center sm:justify-start">
+                  <PlusCircle size={20} className="mr-2 text-[#667085]" />
+                  Status
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2 justify-end w-full md:w-auto">
-              <button className="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-[#18181B]">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
-                  <path d="M5 10H15M2.5 5H17.5M7.5 15H12.5" stroke="#667085" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Type
-              </button>
-              <button className="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-[#18181B]">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
-                  <circle cx="10" cy="10" r="7.5" stroke="#667085" strokeWidth="1.66667"/>
-                  <path d="M10 6.66667V10.8333" stroke="#667085" strokeWidth="1.66667" strokeLinecap="round"/>
-                  <circle cx="10" cy="13.3333" r="0.833333" fill="#667085"/>
-                </svg>
-                Status
-              </button>
+            
+            {/* Action buttons */}
+            <div className="flex items-center space-x-2 justify-between sm:justify-end w-full md:w-auto">
               <button className="px-4 py-2 bg-[#007AFF] text-white rounded-md text-sm flex items-center">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
                   <path d="M10 4.16667V15.8333M4.16667 10H15.8333" stroke="white" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
@@ -121,18 +185,17 @@ export default function Dashboard() {
                 Add Data
               </button>
               <button className="p-2 border border-gray-300 rounded-md">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 6V6.01M10 10V10.01M10 14V14.01" stroke="#667085" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <MoreVertical size={20} className="text-[#18181B]" />
               </button>
             </div>
           </div>
 
+          {/* Data table */}
           <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead >
+              <thead>
                 <tr>
-                  <th scope="col" className="w-[47px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
+                  <th scope="col" className="w-[47px] pl-4 pr-1 py-3 text-left text-xs font-normal text-[#18181B]">
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -140,37 +203,17 @@ export default function Dashboard() {
                       />
                     </div>
                   </th>
-                  <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-                    Datasource
-                  </th>
-                  <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-                    Type
-                  </th>
-                  <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-                    Status
-                  </th>
-                  <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-                    <div className="flex items-center">
-                      Created at
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
-                        <path d="M8 3.33333V12.6667M8 3.33333L12 7.33333M8 3.33333L4 7.33333" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  </th>
-                  <th scope="col" className="min-w-[85px] px-2 py-3 text-left text-xs font-normal text-[#18181B]">
-                    <div className="flex items-center">
-                      Created by
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
-                        <path d="M8 3.33333V12.6667M8 3.33333L12 7.33333M8 3.33333L4 7.33333" stroke="#667085" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                  </th>
+                  <TableHeader label="Datasource" />
+                  <TableHeader label="Type" />
+                  <TableHeader label="Status" />
+                  <TableHeader label="Created at" sortable />
+                  <TableHeader label="Created by" sortable />
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {datasources.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-2 py-4 whitespace-nowrap">
+                    <td className="pl-4 pr-1 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <input
                           type="checkbox"

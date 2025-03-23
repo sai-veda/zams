@@ -11,20 +11,66 @@ import { Plus, Bot, ChevronUp, ChevronDown, Settings, Map, ChevronRight, Chevron
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-  // Adding a property to fix linter error
   children?: React.ReactNode;
   isMinimized?: boolean;
   onToggleMinimize?: () => void;
 }
 
-export function Sidebar({ className, isMinimized = false, onToggleMinimize }: SidebarProps) {
-  const pathname = usePathname()
-  
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  isActive?: boolean;
+  isMinimized: boolean;
+  badge?: string;
+}
+
+// Navigation item component to reduce repetition
+const NavItem = ({ icon, label, isActive, isMinimized, badge }: NavItemProps) => {
   // Mock navigation function to prevent 404s
   const handleNavClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    // We're just preventing navigation for now
   };
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div 
+            onClick={handleNavClick}
+            className={cn(
+              "py-3 text-sm rounded-md hover:bg-gray-100 cursor-pointer leading-none flex items-center",
+              isMinimized ? "justify-center px-0" : "px-2",
+              isActive 
+                ? "bg-gray-100 text-sidebar-foreground font-medium" 
+                : "text-[#3F3F46] font-normal",
+              badge && !isMinimized ? "justify-between" : ""
+            )}
+          >
+            <div className={cn("flex items-center", isMinimized ? "justify-center" : "")}>
+              {icon}
+              {!isMinimized && label}
+            </div>
+            
+            {!isMinimized && badge && (
+              <Badge variant="outline" className="text-xs bg-[#F4F4F5] text-[#18181B] font-semibold border-0 ml-2 px-2 py-0.5 rounded-md">
+                {badge}
+              </Badge>
+            )}
+          </div>
+        </TooltipTrigger>
+        {isMinimized && (
+          <TooltipContent side="right">
+            {label}
+            {badge && ` (${badge})`}
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+export function Sidebar({ className, isMinimized = false, onToggleMinimize }: SidebarProps) {
+  const pathname = usePathname();
   
   return (
     <div
@@ -75,92 +121,37 @@ export function Sidebar({ className, isMinimized = false, onToggleMinimize }: Si
       <div className="space-y-3">
         {!isMinimized && <div className="text-xs pl-2 font-medium text-[#3F3F46] mb-3">Pages</div>}
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                onClick={handleNavClick}
-                className={cn(
-                  "py-3 text-sm rounded-md hover:bg-gray-100 cursor-pointer leading-none flex items-center",
-                  isMinimized ? "justify-center px-0" : "px-2",
-                  pathname === "/models" 
-                    ? "bg-gray-100 text-sidebar-foreground font-medium" 
-                    : "text-[#3F3F46] font-normal"
-                )}
-              >
-                <Bot size={16} className={cn("text-[#3F3F46]", isMinimized ? "" : "mr-3")} />
-                {!isMinimized && "Models"}
-              </div>
-            </TooltipTrigger>
-            {isMinimized && <TooltipContent side="right">Models</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+        {/* Models nav item */}
+        <NavItem 
+          icon={<Bot size={16} className={cn("text-[#3F3F46]", isMinimized ? "" : "mr-3")} />}
+          label="Models"
+          isActive={pathname === "/models"}
+          isMinimized={isMinimized}
+        />
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                onClick={handleNavClick}
-                className={cn(
-                  "py-3 text-sm rounded-md hover:bg-gray-100 cursor-pointer leading-none flex items-center",
-                  isMinimized ? "justify-center px-0" : "px-2",
-                  "bg-[#F4F4F5] text-[#18181B] font-medium"
-                )}
-              >
-                <Image src="/datasources.svg" alt="Datasources" width={16} height={16} className={cn(isMinimized ? "" : "mr-3", "text-[#3F3F46]")} />
-                {!isMinimized && "Datasources"}
-              </div>
-            </TooltipTrigger>
-            {isMinimized && <TooltipContent side="right">Datasources</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+        {/* Datasources nav item */}
+        <NavItem 
+          icon={<Image src="/datasources.svg" alt="Datasources" width={16} height={16} className={cn(isMinimized ? "" : "mr-3", "text-[#3F3F46]")} />}
+          label="Datasources"
+          isActive={true}
+          isMinimized={isMinimized}
+        />
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                onClick={handleNavClick}
-                className={cn(
-                  "py-3 text-sm rounded-md hover:bg-gray-100 cursor-pointer leading-none flex items-center",
-                  isMinimized ? "justify-center px-0" : "px-2 justify-between",
-                  "text-[#3F3F46] font-normal"
-                )}
-              >
-                <div className={cn("flex items-center", isMinimized ? "justify-center" : "")}>
-                  <Map size={16} strokeWidth={2} className={cn(isMinimized ? "" : "mr-3", "text-[#3F3F46]")} />
-                  {!isMinimized && "Workflows"}
-                </div>
-                {!isMinimized && (
-                  <Badge variant="outline" className="text-xs bg-[#F4F4F5] text-[#18181B] font-semibold border-0 ml-2 px-2 py-0.5 rounded-md">
-                    Coming soon
-                  </Badge>
-                )}
-              </div>
-            </TooltipTrigger>
-            {isMinimized && <TooltipContent side="right">Workflows (Coming soon)</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+        {/* Workflows nav item */}
+        <NavItem 
+          icon={<Map size={16} strokeWidth={2} className={cn(isMinimized ? "" : "mr-3", "text-[#3F3F46]")} />}
+          label="Workflows"
+          isMinimized={isMinimized}
+          badge="Coming soon"
+        />
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div 
-                onClick={handleNavClick}
-                className={cn(
-                  "py-3 text-sm rounded-md hover:bg-gray-100 cursor-pointer leading-none flex items-center",
-                  isMinimized ? "justify-center px-0" : "px-2",
-                  pathname === "/settings" 
-                    ? "bg-gray-100 text-sidebar-foreground font-medium" 
-                    : "text-[#3F3F46] font-normal"
-                )}
-              >
-                <Settings size={16} className={cn("text-[#3F3F46]", isMinimized ? "" : "mr-3")} />
-                {!isMinimized && "Settings"}
-              </div>
-            </TooltipTrigger>
-            {isMinimized && <TooltipContent side="right">Settings</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+        {/* Settings nav item */}
+        <NavItem 
+          icon={<Settings size={16} className={cn("text-[#3F3F46]", isMinimized ? "" : "mr-3")} />}
+          label="Settings"
+          isActive={pathname === "/settings"}
+          isMinimized={isMinimized}
+        />
       </div>
       
       {/* User profile and collapse button at bottom */}
@@ -204,32 +195,7 @@ export function Sidebar({ className, isMinimized = false, onToggleMinimize }: Si
           </Tooltip>
         </TooltipProvider>
         
-        {/* Toggle sidebar button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "flex items-center justify-center border border-gray-200 rounded-md hover:bg-gray-100",
-                  isMinimized ? "w-10 h-10 mx-auto p-0" : "w-full"
-                )}
-                onClick={onToggleMinimize}
-              >
-                {isMinimized ? (
-                  <ChevronRight size={16} className="text-[#3F3F46]" />
-                ) : (
-                  <div className="flex items-center w-full justify-between">
-                    <span className="text-xs text-[#3F3F46]">Collapse sidebar</span>
-                    <ChevronLeft size={16} className="text-[#3F3F46]" />
-                  </div>
-                )}
-              </Button>
-            </TooltipTrigger>
-            {isMinimized && <TooltipContent side="right">Expand sidebar</TooltipContent>}
-          </Tooltip>
-        </TooltipProvider>
+  
       </div>
     </div>
   )
